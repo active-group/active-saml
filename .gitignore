@@ -1,0 +1,9 @@
+node_modules
+/out
+.lsp
+.shadow-cljs
+resources/public/js/test
+target/
+.clj-kondo
+pom.xml
+.nrepl-port
