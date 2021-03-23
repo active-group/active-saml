@@ -13,4 +13,5 @@
                  [ring/ring-core            "1.3.1"]]
   :jvm-opts ["-server"]
   :target-path "target/%s"
-  :dev {:resource-paths ["test-resources"]})
+  :profiles {:dev {:resource-paths ["test-resources"]
+                   :dependencies [[ring/ring-mock "0.4.0"]]}})

@@ -9,8 +9,8 @@
 (def handle-metadata
   (monad/monadic
    [metadata (commands/get-metadata)]
-   (monad/return (response/response metadata)
-                 (response/content-type "application/xml"))))
+   (monad/return (-> (response/response metadata)
+                     (response/content-type "application/xml")))))
 
 (defn request-next
   [request]

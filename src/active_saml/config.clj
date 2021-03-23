@@ -99,10 +99,13 @@ interacting with the IdP."
                   service-private-key-file-setting
                   idps-section)))
 
+(def schema
+  (config/schema "SAML config" section))
+
 (defn make-config
   [config]
   (config/make-configuration
-   (config/schema "saml-config" section)
+   schema
    [] config))
 
 (defn get-config
