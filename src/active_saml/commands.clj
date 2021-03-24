@@ -21,6 +21,16 @@
   get-login-response?
   [])
 
+(define-record-type GetLogoutRequest
+  get-logout-request
+  get-logout-request?
+  [login-response get-logout-request-login-response])
+
+(define-record-type GetLogoutResponse
+  get-logout-response
+  get-logout-response?
+  [])
+
 (def get-request
   (monad/get-state-component ::request))
 
@@ -38,9 +48,16 @@
        state]
 
       (get-login-response? m)
-      (let [saml-config     (::saml-config env)]
-        [(saml/config+request->login-response! saml-config request)
-         state])
+      [(saml/config+request->login-response! saml-config request)
+       state]
+
+      (get-logout-request? m)
+      [(saml/config+login-response->logout-request! saml-config (get-logout-request-login-response m))
+       state]
+
+      (get-logout-response? m)
+      [(saml/request->logout-response! request)
+       state]
 
       :else
       monad/unknown-command)))

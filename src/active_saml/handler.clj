@@ -34,17 +34,15 @@
   [login-response-callback]
   "Handle responses arrived here from the IdP through the client."
   (monad/monadic
-    [login-response (commands/get-login-response)]
-    (monad/return (login-response-callback login-response))))
+    [login-response (commands/get-login-response)
+     logout-request (commands/get-logout-request login-response)]
+    (monad/return (login-response-callback login-response logout-request))))
 
-#_(def handle-idp-logout
-    "This endpoint is called by the IdP when a user initiates a logout.
-  This happens if a user has logged out from SSO at another application."
-    (monad/monadic
-     [req get-request]
-     (let [username (get-in req [:session :identity])])
-     (logout-user! username)
-     (monad/return (response/redirect (get-in req [:header "referer"] "../")))))
+(defn handle-logout-response
+  [logout-response-callback]
+  (monad/monadic
+   [logout-response (commands/get-logout-response)]
+   (monad/return (logout-response-callback logout-response))))
 
 (defn run-session*
   "[[run-session]] specialized for use in [[routes]]."
@@ -55,13 +53,13 @@
       result)))
 
 (defn routes
-  [config no-idp-available-response login-page login-response-callback]
+  [config no-idp-available-response login-page login-response-callback logout-response-callback]
   (compojure/routes
    (compojure/context
      "/saml" []
-     (compojure/GET  "/login" [] (run-session* config (handle-get-login no-idp-available-response login-page)))
-     (compojure/POST "/login" [] (run-session* config (handle-login-response login-response-callback)))
-    ;;(compojure/ANY  "/logout" [] (run-session* config handle-logout-response))
+     (compojure/GET  "/login" []    (run-session* config (handle-get-login no-idp-available-response login-page)))
+     (compojure/POST "/login" []    (run-session* config (handle-login-response login-response-callback)))
+     (compojure/ANY  "/logout" []   (run-session* config (handle-logout-response logout-response-callback)))
      (compojure/GET  "/metadata" [] (run-session* config handle-metadata)))))
 
 ;; Middleware to ensure login by redirecting to login page

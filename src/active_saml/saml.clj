@@ -1,8 +1,6 @@
 (ns active-saml.saml
   "Namespace that makes available functions that handles SAML communication."
-  (:require [active.clojure.monad :as monad]
-            [active.clojure.config :as config]
-            [active.clojure.lens :as lens]
+  (:require [active.clojure.config :as config]
             [active.clojure.record :refer [define-record-type]]
             [active.clojure.logger.event :as log]
 
@@ -10,14 +8,10 @@
 
             [clojure.string :as string]
             [saml20-clj.core :as saml]
-            [saml20-clj.sp.request :as saml-request]
             [saml20-clj.coerce :as coerce]
+            [saml20-clj.crypto :as crypto]
             [saml20-clj.encode-decode :as saml-encode]
-            [clojure.xml :as xml]
-            [clojure.zip :as zip]
-            [clojure.data.zip.xml :as zip-xml])
-  (:import [java.net URLEncoder]
-           [org.opensaml.saml.saml2.core Assertion SubjectConfirmation]))
+            [java-time :as t]))
 
 (defn tagged-uuid
   [tag]
@@ -168,3 +162,83 @@
                        assertions)
         name-id (get-in (first assertions) [:name-id :value])]
     (make-login-response name-id groups assertions next idp)))
+
+(defn- format-instant
+  "Converts a date-time to a SAML 2.0 time string."
+  [instant]
+  (t/format (t/format "YYYY-MM-dd'T'HH:mm:ss'Z'" (t/offset-date-time instant (t/zone-offset 0)))))
+
+(defn logout-request!
+  "Return XML elements that represent a SAML 2.0 logout request."
+  ^org.w3c.dom.Element [{:keys [ ;; e.g. something like a UUID. Random UUID will be used if no other ID is provided
+                                request-id
+                                ;; e.g. http://idp.example.com/SSOService.php
+                                slo-url
+                                ;; e.g. http://sp.example.com/demo1/metadata.php
+                                issuer
+                                ;; the token to logout with
+                                name-id
+                                ;; If present, we can sign the request
+                                credential
+                                instant]
+                         :or   {request-id (str "id" (java.util.UUID/randomUUID))
+                                instant (t/instant)}}]
+  (let [request (coerce/->Element
+                 (coerce/->xml-string
+                  [:samlp:LogoutRequest
+                   {:xmlns:samlp                 "urn:oasis:names:tc:SAML:2.0:protocol"
+                    :xmlns:saml                  "urn:oasis:names:tc:SAML:2.0:assertion"
+                    :ID                          request-id
+                    :Version                     "2.0"
+                    :IssueInstant                (format-instant instant)
+                    :Destination                 slo-url}
+                   [:saml:Issuer
+                    issuer]
+                   [:samlp:NameID {:SPNameQualifier issuer :Format "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"}
+                    name-id]]))]
+    (if-not credential
+      request
+      (or (crypto/sign request credential)
+          (throw (ex-info "Failed to sign request" {:request request}))))))
+
+(define-record-type LogoutRequest
+  make-logout-request
+  logout-request?
+  [form-action logout-request-form-action
+   saml-request logout-request-saml-request])
+
+(defn make-logout-request!
+  [issuer slo-url name-id public-key-file private-key-file]
+  (let [saml-request (logout-request!
+                      {:issuer     issuer
+                       :slo-url    slo-url
+                       :name-id    name-id
+                       :credential (get-key-pair public-key-file private-key-file)
+                       :request-id (tagged-uuid slo-url)})
+        saml-request-str (if (string? saml-request)
+                           saml-request
+                           (coerce/->xml-string saml-request))
+        req-b64          (saml-encode/str->base64 saml-request-str)]
+    (make-logout-request slo-url req-b64)))
+
+(defn config+login-response->logout-request!
+  [config login-response]
+  (make-logout-request!
+   (config/access config saml-config/service-app-name-setting saml-config/section)
+   (idp-slo-service (login-response-idp login-response))
+   (login-response-name-id login-response)
+   (config/access config saml-config/service-public-key-file-setting saml-config/section)
+   (config/access config saml-config/service-private-key-file-setting saml-config/section)))
+
+(define-record-type LogoutResponse
+  make-logout-response
+  logout-response?
+  [success logout-response-success
+   next logout-response-next
+   request logout-response-request])
+
+(defn request->logout-response!
+  [request]
+  (make-logout-response true ;; FIXME: Could look at actual response here
+                        (get-in request [:header "referer"] "")
+                        request))
