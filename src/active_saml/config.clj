@@ -1,5 +1,5 @@
 (ns active-saml.config
-  "Configuration for the authentication facilities of Machaon."
+  "Configuration for the authentication facilities of a SAML service provider."
   (:require [active.clojure.config :as config]))
 
 ;; SAML configuration
@@ -51,8 +51,8 @@
 (def service-app-name-setting
   (config/setting
    :service-app-name
-   "The app name that Machaon identifies as to the SAML IdP."
-   (config/default-string-range "Machaon")))
+   "The app name that the service identifies as to the SAML IdP."
+   config/string-range))
 
 (def service-acs-endpoint-setting
   (config/setting
