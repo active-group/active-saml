@@ -240,5 +240,5 @@
 (defn request->logout-response!
   [request]
   (make-logout-response true ;; FIXME: Could look at actual response here
-                        (get-in request [:header "referer"] "")
+                        (get-in request [:header "referer"] "../")
                         request))
