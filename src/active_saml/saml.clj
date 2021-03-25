@@ -30,7 +30,7 @@
      (when private-key-file
        (slurp private-key-file))]
     (catch Exception e
-      (log/log-event! :error (log/log-msg "Error reading key pair" (pr-str e)))
+      (log/log-event! :error (log/log-msg "Error reading key pair" (pr-str [public-key-file private-key-file]) (pr-str e)))
       nil)))
 
 (defn make-cert
@@ -126,9 +126,9 @@
        (config/access config saml-config/idp-cert-file-setting saml-config/section saml-config/idps-section)))
 
 (defn maybe-validate
-  [response check? cert sp-private-key]
+  [response check? make-cert-fn sp-private-key]
   (if check?
-    (saml/validate response cert sp-private-key)
+    (saml/validate response (make-cert-fn) sp-private-key)
     response))
 
 (def relevant-groups-key "eduPersonAffiliation")
@@ -140,7 +140,7 @@
         (try
           (slurp (config/access config saml-config/service-private-key-file-setting saml-config/section))
           (catch Exception e
-            (log/log-event! :error (log/log-msg "Error reading private key" (pr-str e)))
+            (log/log-event! :error (log/log-msg "Error reading private key" (config/access config saml-config/service-private-key-file-setting saml-config/section) (pr-str e)))
             nil))
         [assertions idp]
         (some #(try
@@ -148,7 +148,7 @@
                                       (get-in [:params "SAMLResponse"])
                                       saml-encode/base64->str
                                       saml/->Response
-                                      (maybe-validate (idp-check-ssl? %) (make-cert (idp-cert-file %)) sp-private-key)
+                                      (maybe-validate (idp-check-ssl? %) (fn [] (make-cert (idp-cert-file %))) sp-private-key)
                                       saml/assertions)]
                    (when (and assertions (idp-matches? idp (:in-response-to (:confirmation (first assertions)))))
                      [assertions %]))
