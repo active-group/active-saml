@@ -6,32 +6,57 @@
             [active-saml.saml :as saml]))
 
 
-(define-record-type GetMetadata
-  get-metadata
+(define-record-type
+  ^{:doc "Represents the intent to retrieve the service's metadata."}
+  GetMetadata
+  ^{:doc "Get the configured service's metadata."} get-metadata
   get-metadata?
   [])
 
-(define-record-type GetLoginRequests
+(define-record-type
+  ^{:doc "Represents the intent to generate login requests based on the
+configured SAML IdPs."}
+  GetLoginRequests
+  ^{:doc "Get a sequence of login requests for all configured IdPs."}
   get-login-requests
   get-login-requests?
-  [next get-login-requests-next])
+  [^{:doc "The page the user initially inteded to visit and that will be the
+target of a redirect if the login was successfull."}
+   next get-login-requests-next])
 
-(define-record-type GetLoginResponse
+(define-record-type ^{:doc "Command that, when executed in the context of a
+response from the IdP to a login request, extracts the payload from the request
+and returns a [[active-saml.saml/login-response]]."}
+  GetLoginResponse
+  ^{:doc "Extract the [[active-saml/login-response]] from a request to the login
+ route initiated by the IdP."}
   get-login-response
   get-login-response?
   [])
 
-(define-record-type GetLogoutRequest
+(define-record-type ^{:doc "Command that,  when executed in the context of a
+response from the IdP to a login request, extracts the information that is later
+required for a logout at that IdP and puts it in a
+[[active-saml.saml/logout-request]]"}
+  GetLogoutRequest
+  ^{:doc "Extract the logout information from an IdPs login request as a
+[[active-saml.saml/logout-request]]"}
   get-logout-request
   get-logout-request?
   [login-response get-logout-request-login-response])
 
-(define-record-type GetLogoutResponse
+(define-record-type ^{:doc "Command that, when executed in the context of a
+response from the IdP to a logout request, extracts the payload from the request
+and returns a [[active-saml.saml/logout-response]]."}
+  GetLogoutResponse
+  ^{:doc "Extract the [[active-saml/logout-response]] from a request to the
+logout route initiated by the IdP."}
   get-logout-response
   get-logout-response?
   [])
 
 (def get-request
+  "Command to retrieve the currently processed request from the monad state."
   (monad/get-state-component ::request))
 
 (defn run
@@ -62,13 +87,20 @@
       :else
       monad/unknown-command)))
 
-(defn command-config
+(defn- command-config
   [saml-config request]
   (monad/make-monad-command-config run
                                    {::saml-config saml-config}
                                    {::request request}))
 
 (defn run-session
+  "Run a monadic session program.
+
+  Args:
+  - `saml-config`: A [[active.clojure.config/Configuration]], e. g. the result
+    of [[active-saml.config/get-config]].
+  - `request`: A ring request map that is passed to the handler.
+  - `m`: The (monadic) program you want to evaluate."
   [saml-config request m]
   (monad/run-monadic-swiss-army
    (command-config saml-config request) m))

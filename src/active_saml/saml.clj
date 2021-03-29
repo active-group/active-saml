@@ -1,5 +1,5 @@
 (ns active-saml.saml
-  "Namespace that makes available functions that handles SAML communication."
+  "Namespace that makes available functions that handle SAML communication."
   (:require [active.clojure.config :as config]
             [active.clojure.record :refer [define-record-type]]
             [active.clojure.logger.event :as log]
@@ -52,6 +52,10 @@
       saml/metadata))
 
 (defn config->metadata!
+  "Construct SAML metadata from the configuration.
+  This may fail in two cases:
+  1. The configured private/public key can not be read.
+  2. The credentials cannot be parsed into a certificate."
   [config]
   (make-metadata!
    (config/access config saml-config/service-app-name-setting saml-config/section)
@@ -84,6 +88,10 @@
     (make-login-request label idp-url next req-b64)))
 
 (defn config+next->login-requests!
+  "Based on the `config`, generate a [[active-saml.saml/login-request]] for each
+  configured idp.
+  `next` is the URI that the client wants to access and will be referred to
+  after successfull authentication."
   [config next]
   (map #(make-login-request!
          (config/access config saml-config/service-app-name-setting saml-config/section)
@@ -117,6 +125,8 @@
   (fn [idp] (when (tagged? (idp-sso-service idp) in-response-to) idp)))
 
 (defn config->idps
+  "Extract all configured Identity Providers from some `config` and return them
+  as [[active-saml/idp]]s."
   [config]
   (map make-idp
        (config/access config saml-config/idp-label saml-config/section saml-config/idps-section)
@@ -126,6 +136,7 @@
        (config/access config saml-config/idp-cert-file-setting saml-config/section saml-config/idps-section)))
 
 (defn maybe-validate
+  "If `check?` is true, validate the `response`."
   [response check? make-cert-fn sp-private-key]
   (if check?
     (saml/validate response (make-cert-fn) sp-private-key)

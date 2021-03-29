@@ -1,4 +1,6 @@
 (ns active-saml.handler
+  "Namespace that provides handlers and and compojure routes that can be hooked
+  into any compojure app."
   (:require [active.clojure.monad :as monad]
             [compojure.core :as compojure]
             [ring.util.response :as response]
@@ -7,20 +9,28 @@
   (:import [java.net URLEncoder]))
 
 (def handle-metadata
+  "Returns the metadata of the configured service."
   (monad/monadic
    [metadata (commands/get-metadata)]
    (monad/return (-> (response/response metadata)
                      (response/content-type "application/xml")))))
 
 (defn request-next
+  "Takes a ring `request` map and returns \"next\" from it's `:query-params`."
   [request]
   (or (get-in request [:query-params "next"]) "./"))
 
 (defn handle-get-login
-  [no-idp-available-response login-page]
   "Serve a login page to the user. `req` must contain a value for
   `[:query-params \"next\"]` so we can redirect the user to the requested page
-  after successful authentication."
+  after successful authentication.
+
+  Args:
+  - `no-idp-available-response`: This is returned when no identity provider is
+    configured.
+  - `login-page` is a function that expects a seq of
+    [[active-saml.saml/login-request]]s and returns HTML."
+  [no-idp-available-response login-page]
   (monad/monadic
    [request commands/get-request]
    (let [next (request-next request)])
@@ -31,8 +41,8 @@
       (monad/return (login-page login-requests))))))
 
 (defn handle-login-response
-  [login-response-callback]
   "Handle responses arrived here from the IdP through the client."
+  [login-response-callback]
   (monad/monadic
     [login-response (commands/get-login-response)
      logout-request (commands/get-logout-request login-response)]
@@ -53,6 +63,10 @@
       result)))
 
 (defn routes
+  "Compojure routes that provides all endpoints for SAML communication.
+
+  Args:
+  - `config`: A [[active.clojure.config/Configuration]], e. g. the result"
   [config no-idp-available-response login-page login-response-callback logout-response-callback]
   (compojure/routes
    (compojure/context
