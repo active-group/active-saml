@@ -161,7 +161,7 @@
                                       saml/->Response
                                       (maybe-validate (idp-check-ssl? %) (fn [] (make-cert (idp-cert-file %))) sp-private-key)
                                       saml/assertions)]
-                   (when (and assertions (idp-matches? idp (:in-response-to (:confirmation (first assertions)))))
+                   (when (and assertions (idp-matches? % (:in-response-to (:confirmation (first assertions)))))
                      [assertions %]))
                  (catch Exception e
                    nil))
