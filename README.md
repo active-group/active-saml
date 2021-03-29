@@ -162,6 +162,15 @@ Your service must define the following values in it's configuration:
 - `:identity-providers` (Vector[Ientity Provider]): A vector of Identity
   Provider configurations. Defaults to `[]`.
   
+
+## Notes on `active-logger`
+`active-saml` makes use of [our own logging
+library](https://github.com/active-group/active-logger).
+You do not have to configure the logger. If you don't explicitly configure it,
+there are some defaults for basic usage.
+If you want to customize this, please refer to it's documentation on how to
+configure the logger for usage in your project.
+
 ## License
 
 Copyright © 2021 Active Group GmbH
