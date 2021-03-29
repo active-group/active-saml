@@ -18,17 +18,18 @@
     (t/is (some? (saml/login-request-saml-request login-request)))))
 
 (t/deftest config+next->login-requests!-test
-  (let [config (-> {:saml {:service-metadata-endpoint "/saml/metadata"
-                           :service-acs-endpoint      "/saml/login"
-                           :service-sls-endpoint      "/saml/logout"
-                           :service-app-name          "Service"
-                           :service-public-key-file   ""
-                           :service-private-key-file  ""
-                           :identity-providers        [{:idp-label       "label"
-                                                        :idp-sso-service "sso"
-                                                        :idp-slo-service "ssl"
-                                                        :idp-check-ssl?  false
-                                                        :idp-cert-file   ""}]}})
+  (let [config (-> {:saml {:service-metadata-endpoint  "/saml/metadata"
+                           :service-acs-endpoint       "/saml/login"
+                           :service-sls-endpoint       "/saml/logout"
+                           :service-app-name           "Service"
+                           :service-public-key-file    ""
+                           :service-private-key-file   ""
+                           :service-saml-assertion-key :group
+                           :identity-providers         [{:idp-label       "label"
+                                                         :idp-sso-service "sso"
+                                                         :idp-slo-service "ssl"
+                                                         :idp-check-ssl?  false
+                                                         :idp-cert-file   ""}]}})
         next*  "next"
         res    (saml/config+next->login-requests! (saml-config/make-config config) next*)
         [login-request & _]
@@ -41,7 +42,7 @@
       (t/is (some? (saml/login-request-saml-request login-request))))
 
     (t/testing "with multiple idps, respects configuration order"
-      (let [config (update-in config
+      (let [config        (update-in config
                               [:saml :identity-providers]
                               conj
                               {:idp-label       "other label"
@@ -49,7 +50,7 @@
                                :idp-slo-service "other ssl"
                                :idp-check-ssl?  false
                                :idp-cert-file   ""})
-            res    (saml/config+next->login-requests! (saml-config/make-config config) next*)
+            res           (saml/config+next->login-requests! (saml-config/make-config config) next*)
             [fst snd & _] res]
         (t/is (= 2 (count res)))
 
@@ -64,7 +65,9 @@
         (t/is (some? (saml/login-request-saml-request snd)))))))
 
 (t/deftest config->idps-test
-  (let [config (-> {:saml {:identity-providers
+  (let [config (-> {:saml
+                    {:service-saml-assertion-key :group
+                     :identity-providers
                            [{:idp-label       "label"
                              :idp-sso-service "sso"
                              :idp-slo-service "sls"

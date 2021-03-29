@@ -3,26 +3,28 @@
             [active-saml.config :as saml-config]
             [clojure.test :as t]))
 
-(def empty-config {})
+(def empty-config {:saml {:service-saml-assertion-key :group}})
 
 (def empty-config-normalized
   {:saml
-   {:service-app-name          "",
-    :service-metadata-endpoint "",
-    :service-acs-endpoint      "",
-    :service-sls-endpoint      "",
-    :service-public-key-file   "",
-    :service-private-key-file  "",
-    :identity-providers        []}})
+   {:service-app-name           "",
+    :service-metadata-endpoint  "",
+    :service-acs-endpoint       "",
+    :service-sls-endpoint       "",
+    :service-public-key-file    "",
+    :service-private-key-file   "",
+    :service-saml-assertion-key :group
+    :identity-providers         []}})
 
 (def example-config-normalized
   {:saml
-   {:service-metadata-endpoint "/saml/metadata"
-    :service-acs-endpoint      "/saml/login"
-    :service-sls-endpoint      "/saml/logout"
-    :service-app-name          ""
-    :service-public-key-file   ""
-    :service-private-key-file  ""
+   {:service-metadata-endpoint  "/saml/metadata"
+    :service-acs-endpoint       "/saml/login"
+    :service-sls-endpoint       "/saml/logout"
+    :service-app-name           ""
+    :service-public-key-file    ""
+    :service-private-key-file   ""
+    :service-saml-assertion-key :group
     :identity-providers
     [{:idp-label       "label"
       :idp-sso-service "sso"

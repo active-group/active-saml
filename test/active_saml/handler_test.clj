@@ -11,21 +11,23 @@
             [active-saml.config-test :as config-test]))
 
 (def empty-test-config
-  (saml-config/make-config {:saml {:service-app-name "Testservice"}}))
+  (saml-config/make-config {:saml {:service-app-name           "Testservice"
+                                   :service-saml-assertion-key :group}}))
 
 (def test-config-with-idp
   (saml-config/make-config
-   {:saml {:service-metadata-endpoint "/saml/metadata"
-           :service-acs-endpoint      "/saml/login"
-           :service-sls-endpoint      "/saml/logout"
-           :service-app-name          "Service"
-           :service-public-key-file   ""
-           :service-private-key-file  ""
-           :identity-providers        [{:idp-label       "label"
-                                        :idp-sso-service "sso"
-                                        :idp-slo-service "ssl"
-                                        :idp-check-ssl?  false
-                                        :idp-cert-file   ""}]}}))
+   {:saml {:service-metadata-endpoint  "/saml/metadata"
+           :service-acs-endpoint       "/saml/login"
+           :service-sls-endpoint       "/saml/logout"
+           :service-app-name           "Service"
+           :service-public-key-file    ""
+           :service-private-key-file   ""
+           :service-saml-assertion-key :group
+           :identity-providers         [{:idp-label       "label"
+                                         :idp-sso-service "sso"
+                                         :idp-slo-service "ssl"
+                                         :idp-check-ssl?  false
+                                         :idp-cert-file   ""}]}}))
 
 (t/deftest request-next-test
   (t/is (= "next" (handler/request-next {:query-params {"next" "next"}})))
