@@ -26,9 +26,9 @@ target of a redirect if the login was successfull."}
 
 (define-record-type ^{:doc "Command that, when executed in the context of a
 response from the IdP to a login request, extracts the payload from the request
-and returns a [[active-saml.saml/login-response]]."}
+and returns a [[active-saml.saml/LoginResponse]]."}
   GetLoginResponse
-  ^{:doc "Extract the [[active-saml/login-response]] from a request to the login
+  ^{:doc "Extract the [[active-saml/LoginResponse]] from a request to the login
  route initiated by the IdP."}
   get-login-response
   get-login-response?
@@ -37,19 +37,19 @@ and returns a [[active-saml.saml/login-response]]."}
 (define-record-type ^{:doc "Command that,  when executed in the context of a
 response from the IdP to a login request, extracts the information that is later
 required for a logout at that IdP and puts it in a
-[[active-saml.saml/logout-request]]"}
+[[active-saml.saml/LogoutRequest]]"}
   GetLogoutRequest
   ^{:doc "Extract the logout information from an IdPs login request as a
-[[active-saml.saml/logout-request]]"}
+[[active-saml.saml/LogoutRequest]]"}
   get-logout-request
   get-logout-request?
   [login-response get-logout-request-login-response])
 
 (define-record-type ^{:doc "Command that, when executed in the context of a
 response from the IdP to a logout request, extracts the payload from the request
-and returns a [[active-saml.saml/logout-response]]."}
+and returns a [[active-saml.saml/LogoutResponse]]."}
   GetLogoutResponse
-  ^{:doc "Extract the [[active-saml/logout-response]] from a request to the
+  ^{:doc "Extract the [[active-saml/LogoutResponse]] from a request to the
 logout route initiated by the IdP."}
   get-logout-response
   get-logout-response?

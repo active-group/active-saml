@@ -64,7 +64,7 @@
    (config/access config saml-config/service-public-key-file-setting saml-config/section)
    (config/access config saml-config/service-private-key-file-setting saml-config/section)))
 
-(define-record-type login-request
+(define-record-type LoginRequest
   make-login-request
   login-request?
   [label login-request-label
@@ -102,7 +102,7 @@
        (config/access config saml-config/idp-label saml-config/section saml-config/idps-section)
        (config/access config saml-config/idp-sso-service-setting saml-config/section saml-config/idps-section)))
 
-(define-record-type login-response
+(define-record-type LoginResponse
   make-login-response
   login-response?
   [name-id login-response-name-id
@@ -111,7 +111,7 @@
    next login-response-next
    idp login-response-idp])
 
-(define-record-type idp
+(define-record-type IDP
   make-idp
   idp?
   [label idp-label
