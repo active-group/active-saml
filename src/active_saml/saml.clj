@@ -142,8 +142,6 @@
     (saml/validate response (make-cert-fn) sp-private-key)
     response))
 
-(def relevant-groups-key "eduPersonAffiliation")
-
 (defn config+request->login-response!
   [config req]
   (let [idps (config->idps config)
@@ -153,6 +151,8 @@
           (catch Exception e
             (log/log-event! :error (log/log-msg "Error reading private key" (config/access config saml-config/service-private-key-file-setting saml-config/section) (pr-str e)))
             nil))
+        relevant-groups-key
+        (config/access config saml-config/service-saml-assertion-key saml-config/section)
         [assertions idp]
         (some #(try
                  (let [assertions (-> req
