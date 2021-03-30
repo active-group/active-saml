@@ -33,7 +33,7 @@
   (t/is (= "next" (handler/request-next {:query-params {"next" "next"}})))
   (t/is (= "./" (handler/request-next {}))))
 
-(def mock-no-idp-available-response ::no-idp-available)
+(def mock-no-idp-available-response "no-idp-available")
 (def mock-login-page identity)
 
 (defn mock-login-response-callback
@@ -56,12 +56,47 @@
         (t/is (= "./" (saml/login-request-relay-state (first resp))))))))
 
 (t/deftest routes-test
-  (let [handler (-> (handler/routes empty-test-config (constantly nil) (constantly nil) (constantly nil) (constantly nil))
-                    ring-params/wrap-params)]
-    (t/testing "/saml"
+  (let [handler (fn [config]
+                  (-> (handler/routes config
+                                      mock-no-idp-available-response
+                                      (fn [login-requests]
+                                        {:status 200
+                                         :body   login-requests})
+                                      (constantly nil)
+                                      (constantly nil))
+                      ring-params/wrap-params))]
+
+    (t/testing "GET"
       (t/testing "/metadata"
-        (t/testing "GET"
-          (let [{:keys [status headers body]} (handler (mock/request :get "/saml/metadata"))]
+        (let [{:keys [status headers body]}
+              ((handler empty-test-config)
+               (mock/request :get "/saml/metadata"))]
+          (t/is (= 200 status))
+          (t/is (= {"Content-Type" "application/xml"} headers))
+          (t/is (= (saml/config->metadata! empty-test-config) body))))
+
+      (t/testing "/login"
+        (t/testing "without any configured idps"
+          (let [req (mock/request :get "/saml/login")
+                {:keys [status headers body]}
+                ((handler empty-test-config) req)]
             (t/is (= 200 status))
-            (t/is (= {"Content-Type" "application/xml"} headers))
-            (t/is (= (saml/config->metadata! empty-test-config) body))))))))
+            (t/is (= body mock-no-idp-available-response))))
+
+        (t/testing "without configured idps"
+          (let [req                  (mock/request :get "/saml/login")
+                {:keys [status headers body]}
+                ((handler test-config-with-idp) req)
+                [login-response & _] body]
+            (t/is (= 200 status))
+            (t/is (= "label" (saml/login-request-label login-response)))
+            (t/is (= "sso" (saml/login-request-form-action login-response)))
+            (t/is (= "./" (saml/login-request-relay-state login-response)))))))
+    (t/testing "POST"
+      (t/testing "/login"
+        ;; TODO
+        ))
+    (t/testing "ANY"
+      (t/testing "/logout"
+        ;; TODO
+        ))))
