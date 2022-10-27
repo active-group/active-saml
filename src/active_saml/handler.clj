@@ -124,8 +124,8 @@
   `:logged-in-user`."
   [request->logged-in-user?]
   (fn [handler]
-  (fn [req]
-    (if (or (request->logged-in-user? req)
-            (re-matches #"saml/login$" (or (:uri req) "")))
-      (handler req)
-      (redirect-to-login req)))))
+    (fn [req]
+      (if (or (request->logged-in-user? req)
+              (re-matches #"saml/login$" (or (:uri req) "")))
+        (handler req)
+        (redirect-to-login req)))))
