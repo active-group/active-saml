@@ -76,7 +76,7 @@
   (config/setting
    :service-saml-assertion-key
    "The key under which groups of interesting for this service are stored in the saml assertions."
-   config/keyword-range))
+   (config/optional-default-range (config/any-range config/string-range config/keyword-range) "Role")))
 
 (def idp-schema
   (config/schema "SAML configuration schema."
