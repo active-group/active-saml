@@ -172,6 +172,7 @@
                        []
                        assertions)
         name-id (get-in (first assertions) [:name-id :value])]
+    (log/log-event! :debug (log/log-msg "login response" name-id (pr-str groups) (pr-str assertions) next (pr-str idp)))
     (make-login-response name-id groups assertions next idp)))
 
 (defn- format-instant
