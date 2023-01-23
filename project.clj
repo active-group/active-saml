@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [de.active-group/active-clojure "0.37.1"]
+                 [de.active-group/active-clojure "0.41.0"]
                  [de.active-group/active-logger "0.2.0"]
                  [metabase/saml20-clj "2.0.0"]
                  [clojure.java-time "0.3.2"]

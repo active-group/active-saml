@@ -102,5 +102,5 @@ logout route initiated by the IdP."}
   - `request`: A ring request map that is passed to the handler.
   - `m`: The (monadic) program you want to evaluate."
   [saml-config request m]
-  (monad/run-monadic-swiss-army
+  (monad/run-monadic
    (command-config saml-config request) m))
