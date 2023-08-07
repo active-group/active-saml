@@ -1,11 +1,11 @@
 # active-saml
 
-A library for SAML auth that can easily hooked into a compjure app.
+A library for SAML auth that can easily hooked into a compojure app.
 
 [![Clojars Project](https://img.shields.io/clojars/v/de.active-group/active-saml.svg)](https://clojars.org/de.active-group/active-saml)
 
 ## Usage
-So setup the required endpoints, hook to following into your compjure
+To setup the required endpoints, hook to following into your compojure
 application. In this somewhat longer example, we use
 [Hiccup](https://github.com/weavejester/hiccup) to generate HTML output. Feel
 free to respond to the requests however you like.
@@ -95,9 +95,6 @@ free to respond to the requests however you like.
                        logout-response-callback))
 ```
 
-
-
-
 This will create a context under `/saml`, providing the following
 endpoints:
 
@@ -105,9 +102,9 @@ endpoints:
 - `/saml/login` (`POST`)
 - `/saml/logout` (`ANY`)
 - `/saml/metadata` (`GET`)
- 
 
 ### Configuration
+
 You must configure your service using a Clojure map (you are of course free
 to read it from a file).
 One full example of such a configuration (configuring one IdP):
@@ -129,21 +126,23 @@ One full example of such a configuration (configuring one IdP):
 ```
 
 #### Identity Provider
-Your service may want to talk to multiple SAML Identity-Providers.
+
+Your service may want to talk to multiple SAML identity providers.
 Each configuration is a map with the following keys:
 
 - `:idp-label` (String): The label of the login button. Defaults to `""`.
-- `:idp-sso-service` (String): The endpoint of the IdPs Single Sign On service.
+- `:idp-sso-service` (String): The endpoint of the IdP's Single Sign On service.
   Defaults to `""`.
-- `:idp-slo-service` (String): The endpoint of the IdPs Single Log Out service.
+- `:idp-slo-service` (String): The endpoint of the IdP's Single Log Out service.
   Defaults to `""`.
-- `:idp-cert-file` (String): Path to the certificate file the IdP needed for
+- `:idp-cert-file` (String): Path to the certificate file the IdP needs for
     validation. Defaults to `""`.
-- `:idp-check-ssl` (Boolean): Check encryption/signature on IDP responses.
+- `:idp-check-ssl` (Boolean): Check encryption/signature on IdP responses.
   Defaults to `false`.
 
 #### Service
-Your service must define the following values in it's configuration:
+
+Your service must define the following values in its configuration:
 - `:service-public-key-file` (String): Path to the public key file used for the
   SAML communication. Defaults to `""`.
 - `:service-private-key-file` (String): Path to the private key file used for
@@ -157,18 +156,19 @@ Your service must define the following values in it's configuration:
 - `:service-metadata-endpoint` (String): An URL that points to this service's
     metadata endpoint. Defaults to `""`.
 - `:service-saml-assertion-key` (Keyword): The key under which relevant
-  information for your serivce is stored in the SAML assertions response.
+  information for your service is stored in the SAML assertions response.
   No default value.
-- `:identity-providers` (Vector[Ientity Provider]): A vector of Identity
+- `:identity-providers` (Vector[Identity Provider]): A vector of Identity
   Provider configurations. Defaults to `[]`.
   
 
 ## Notes on `active-logger`
+
 `active-saml` makes use of [our own logging
 library](https://github.com/active-group/active-logger).
 You do not have to configure the logger. If you don't explicitly configure it,
 there are some defaults for basic usage.
-If you want to customize this, please refer to it's documentation on how to
+If you want to customize this, please refer to its documentation on how to
 configure the logger for usage in your project.
 
 ## License
